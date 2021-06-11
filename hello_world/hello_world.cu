@@ -3,24 +3,24 @@
 
    author: Dorothea vom Bruch (dorothea.vom.bruch@cern.ch)
    date: 05/2019
-
+   updated 06/2021
  */
 
 #include <stdio.h>
 #include <iostream>
 
-#include "../helpers/helpers.h"
-
 using namespace std;
 
-__global__ void hello_world_kernel() {
-
-  /* blockIdx.x:  Accesses index of block within grid in x direction
-     threadIdx.x: Accesses index of thread within block in x direction
-   */
-   if ( blockIdx.x < 100 && threadIdx.x < 100 ) 
-    printf("Hello World from block %u, thread %u \n", blockIdx.x, threadIdx.x);
+/* to do: Add the __global__ keyword in front of the function declaration to indicate that this function is executed on the GPU */
+void hello_world_gpu() {
+    
+    /* to do: uncomment this line once the hello_world_gpu function has been marked with the __global__ keyword */
+    //printf("Hello World from the GPU at block %u, thread %u \n", blockIdx.x, threadIdx.x);
   
+}
+
+void hello_world_cpu() {
+    printf("Hello World from the CPU \n");
 }
 
 int main( int argc, char *argv[] ) {
@@ -30,26 +30,32 @@ int main( int argc, char *argv[] ) {
     return -1;
   }
 
+  /* Call CPU function */
+  hello_world_cpu();
+    
+  /* Call GPU function */
   const int n_blocks  = atoi(argv[argc-2]);
   const int n_threads = atoi(argv[argc-1]);
   
    
-  /* dim3: CUDA specific variable to declare size of grid in blocks and threads, 
-     can take up to three arguments for 3-dimensional grids and blocks
+  /* Refactor and code below to call the function on the GPU */  
+    
+  /* to do: variables of type dim3 to declare the size of the grid (n_blocks) and the size of the blocks (n_threads) 
+      example: dim3 grid_dim(n_blocks);
   */
-  dim3 grid_dim(n_blocks);
-  dim3 block_dim(n_threads);
 
-  /* Syntax to launch a kernel: 
-     <<< size of grid in blocks and threads>>>
-     (): any parameters to be passed to the kernel
+    
+  /* to do: launch the kernel
+     Reminder: Syntax to launch a kernel: 
+     hello_world_gpu<<<grid_dim, block_dim>>>();
+     grid_dim and block_dim are the variables of type dim3 that you declared above
+     paramters can be passed to the function in the brackets (), we leave them empty for this exercise
   */
-  hello_world_kernel<<<grid_dim, block_dim>>>();
 
-  /* Blocks until all requested tasks on device were completed;
-     needed for printf in kernel to work
+  /* to do: call the pre-defined function cudaDeviceSynchronize();
+     It blocks until all requested tasks on device were completed
   */
-  cudaDeviceSynchronize();
+  
 
   return 0;
 }
