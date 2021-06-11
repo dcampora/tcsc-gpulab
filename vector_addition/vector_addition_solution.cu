@@ -35,8 +35,9 @@ void check_elements(int correct, int* vec, int N) {
 }
 
 __global__ void vector_addition_gpu(int *a, int *b, int *c, int size) {
-  
-  for (int i = threadIdx.x; i < size; i += blockDim.x) {
+  const int start = threadIdx.x + blockIdx.x * blockDim.x;
+  const int stride = blockDim.x * gridDim.x;
+  for (int i = start; i < size; i += stride) {
     c[i] = a[i] + b[i];
   }
 }

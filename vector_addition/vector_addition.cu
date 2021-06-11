@@ -39,9 +39,12 @@ void vector_addition_gpu(int *a, int *b, int *c, int size) {
   
   /* Step 2 to do: modify the for loop such that it is executed in parallel
      Follow the instructions in the notebook for details
-     The idea is to use threadIdx.x, blockIdx.x and blockDim.x when configuring the for loop 
+     The idea is to use threadIdx.x, blockIdx.x, blockDim.x and gridDim.x 
+     to configure the start and stride of the for loop
    */
-  for (int i = 0; i < size; i ++) { // <- change only this line!
+  const int start = 0;
+  const int stride = 1;
+  for (int i = start; i < size; i += stride) { 
     c[i] = a[i] + b[i];
   }
 }
@@ -107,8 +110,7 @@ int main(int argc, char *argv[] ) {
   
   /* Copy result vector from device to host */
   /* Step 3 to do: Copy content of c_d to c_h 
-     Use the following syntax:
-     cudaMemcpy( c_h, c_d, size * sizeof(int), cudaMemcpyDeviceToHost ); 
+     Follow the syntax of cudaMemcpy from above, but remember that we want to copy from teh device to the host now
    */
 
   

@@ -47,9 +47,10 @@ int main( int argc, char *argv[] ) {
     
   /* to do: launch the kernel
      Reminder: Syntax to launch a kernel: 
-     hello_world_gpu<<<grid_dim, block_dim>>>();
+     kernel_name<<<grid_dim, block_dim>>>();
      grid_dim and block_dim are the variables of type dim3 that you declared above
-     paramters can be passed to the function in the brackets (), we leave them empty for this exercise
+     paramters can be passed to the function in the brackets (), 
+     the kernel in this exercise does not take any parameters
   */
 
   /* to do: call the pre-defined function cudaDeviceSynchronize();
