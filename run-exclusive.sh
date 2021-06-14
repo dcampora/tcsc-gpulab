@@ -1,5 +1,13 @@
 #!/usr/bin/bash
 
+###################################################################
+# Wrapper that runs a process exclusively, as long as other process
+# also use this wrapper.
+#
+# author: Daniel Campora (dcampora@cern.ch)
+# date: 06/2021
+###################################################################
+
 MAX_ATTEMPTS=10
 TIMEOUT=2
 LOCK_FILE="/tmp/${USER}-lock"
