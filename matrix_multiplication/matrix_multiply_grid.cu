@@ -1,108 +1,103 @@
 /**
-   Matrix multiplication example using threads and blocks for parallelization
+   Square matrix multiplication example
 
    author: Dorothea vom Bruch (dorothea.vom.bruch@cern.ch)
-   date: 05/2019
-
+           Daniel Campora (dcampora@cern.ch)
+   date: 05/2019, 06/2021
  */
 
-#include <stdio.h>
-#include <iostream>
 #include <chrono>
+#include <iostream>
+#include <cstdio>
 
 #include "../helpers/helpers.h"
 #include "matrix_utils.h"
 
-using namespace std;
-
-typedef double my_float_t;
-
-__global__ void matrixMultiply(const int size, const my_float_t *src_matrix_1, const my_float_t *src_matrix_2, my_float_t *dst_matrix ) {
-  
-  int i = blockIdx.x * blockDim.x + threadIdx.x;
-  int j = blockIdx.y * blockDim.y + threadIdx.y;
-  
-  if ( i < size && j < size ) {
-    
-    my_float_t sum = 0;
-    for ( int k = 0; k < size; k++ ) {
-      sum += src_matrix_1[i * size + k] * src_matrix_2[k * size + j];
+/**
+ * @brief Multiplies matrices using multiple blocks and threads.
+ */
+__global__ void multiply_square_matrices(const int size,
+                                         const float *A,
+                                         const float *B,
+                                         float *C) {
+  for (int i = 0; i < size; ++i) {
+    for (int j = 0; j < size; ++j) {
+      float element = 0;
+      for (int k = 0; k < size; k++) {
+        element += A[i * size + k] * B[k * size + j];
+      }
+      C[i * size + j] = element;
     }
-    dst_matrix[i * size + j] = sum;
   }
-  
 }
 
+int main(int argc, char *argv[]) {
 
-int main(int argc, char * argv[])
-{
-
-  if ( argc != 3 ) {
-    cout << "Need two arguments: number of columns (= number of rows) of matrix and number of threads / block" << endl;
+  if (argc != 2) {
+    std::cout << "Needs an argument: number of rows (= number of columns) of "
+                 "square matrices\n";
     return -1;
   }
 
-  const int matrix_size = atoi(argv[argc-2]);
-  const int n_threads = atoi(argv[argc-1]);
-   
-  //Allocate host and device memory for three matrices
-  my_float_t *host_matrix[3];    //matrix[0] and matrix[1] are the source for the multiplication, result stored in matrix[2]
-  my_float_t *device_matrix[3];
- 
-  for (int i = 0;i < 3;i++)
-    {
-      if ((host_matrix[i] = new my_float_t[matrix_size * matrix_size]) == NULL) {
-  	printf("Memory allocation error");
-  	return -1;
-      }
-      CUDA_ASSERT( cudaMalloc( (void**)&device_matrix[i], matrix_size * matrix_size * sizeof(my_float_t) ) );
+  const int matrix_size = atoi(argv[argc - 1]);
+
+  // Allocate host and device memory for three matrices
+  float *host_matrix[3]; // matrix[0] and matrix[1] are the source for the
+                         // multiplication, result stored in matrix[2]
+  float *device_matrix[3];
+
+  for (int i = 0; i < 3; i++) {
+    host_matrix[i] = new float[matrix_size * matrix_size];
+    CUDA_ASSERT(cudaMalloc((void **)&device_matrix[i],
+                           matrix_size * matrix_size * sizeof(float)));
+  }
+
+  // Initialize matrices
+  for (int i = 0; i < matrix_size; i++) {
+    for (int j = 0; j < matrix_size; j++) {
+      host_matrix[0][i * matrix_size + j] = (i * (j + 1)) % 10;
+      host_matrix[1][i * matrix_size + j] = (2 * i + j) % 10;
+      host_matrix[2][i * matrix_size + j] = 0;
     }
-  
-  //Initialize matrices
-  for (int i = 0;i < matrix_size;i++)
-    {
-      for (int j = 0; j < matrix_size;j++)
-	{
-	  host_matrix[0][i * matrix_size + j] = i * (j + 1);
-	  host_matrix[1][i * matrix_size + j] = 2 * i + j;
-	  host_matrix[2][i * matrix_size + j] = 0;
-	}
-    }
-  
+  }
+
   // Copy matrices to device
-  for (int i = 0;i < 3;i++)
-    {
-      CUDA_ASSERT( cudaMemcpy( device_matrix[i], host_matrix[i], matrix_size * matrix_size * sizeof(my_float_t), cudaMemcpyHostToDevice )  );
-    }
+  for (int i = 0; i < 3; i++) {
+    CUDA_ASSERT(cudaMemcpy(device_matrix[i], host_matrix[i],
+                           matrix_size * matrix_size * sizeof(float),
+                           cudaMemcpyHostToDevice));
+  }
 
   // Launch kernel
-  int size     = matrix_size;
-  int n_blocks = size / (n_threads) + (size % (n_threads) != 0);
-  dim3 grid(n_blocks, n_blocks);
-  dim3 block(n_threads, n_threads);
+  int size = matrix_size;
+  dim3 grid(1);
+  dim3 block(1);
 
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
-  
-  matrixMultiply<<<grid, block>>>(size, device_matrix[0], device_matrix[1], device_matrix[2] );  
+
+  multiply_square_matrices<<<grid, block>>>(size, device_matrix[0],
+                                            device_matrix[1], device_matrix[2]);
 
   cudaDeviceSynchronize();
-  end = std::chrono::system_clock::now();
-  std::chrono::duration<double> elapsed_seconds = end-start;
-  
-  // Copy back result
-  CUDA_ASSERT( cudaMemcpy( host_matrix[2], device_matrix[2], matrix_size * matrix_size * sizeof(my_float_t), cudaMemcpyDeviceToHost )  );
-  
-  //Check and print result
-  check_result<my_float_t>(matrix_size, host_matrix[2]);
 
-  cout << "Kernel duration: " << elapsed_seconds.count() << " s " << endl;
-  
+  end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_seconds = end - start;
+
+  // Copy back result
+  CUDA_ASSERT(cudaMemcpy(host_matrix[2], device_matrix[2],
+                         matrix_size * matrix_size * sizeof(float),
+                         cudaMemcpyDeviceToHost));
+
+  // Check and print result
+  check_result(host_matrix[0], host_matrix[1], host_matrix[2], matrix_size,
+               matrix_size, matrix_size);
+
+  std::cout << "Kernel duration: " << elapsed_seconds.count() << " s\n";
+
   // Free memory
-  for (int i = 0;i < 3;i++)
-    {
-      delete[] host_matrix[i];
-      CUDA_ASSERT( cudaFree( device_matrix[i] ) );
-    }
-  
+  for (int i = 0; i < 3; i++) {
+    delete[] host_matrix[i];
+    CUDA_ASSERT(cudaFree(device_matrix[i]));
+  }
 }

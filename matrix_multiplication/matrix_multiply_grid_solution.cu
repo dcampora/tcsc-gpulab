@@ -1,9 +1,10 @@
-/**
+  /**
    Square matrix multiplication example
 
    author: Dorothea vom Bruch (dorothea.vom.bruch@cern.ch)
            Daniel Campora (dcampora@cern.ch)
    date: 05/2019, 06/2021
+
  */
 
 #include <chrono>
@@ -14,23 +15,41 @@
 #include "matrix_utils.h"
 
 /**
- * @brief Multiplication of square matrices without any parallelization.
- * @details In this sequential implementation of square matrix multiplication,
- *          every thread would work on all the elements.
+ * @brief Multiplies matrices using multiple blocks and threads.
+ * @details The version shown here is tied to be invoked with enough
+ *          blocks and threads (otherwise the results would be wrong).
+ *          
+ *          A grid and block dimension-strided version is included as an optional
+ *          commented out version. This version would work irrespective of
+ *          the number of blocks and threads it is invoked with.
  */
 __global__ void multiply_square_matrices(const int size,
                                          const float *A,
                                          const float *B,
                                          float *C) {
-  for (int i = 0; i < size; ++i) {
-    for (int j = 0; j < size; ++j) {
-      float element = 0;
-      for (int k = 0; k < size; k++) {
-        element += A[i * size + k] * B[k * size + j];
-      }
-      C[i * size + j] = element;
+  // Deal with element i, j
+  int i = blockIdx.x * blockDim.x + threadIdx.x;
+  int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+  // Check i and j are in bounds
+  if (i < size && j < size) {
+    float element = 0;
+    for (int k = 0; k < size; k++) {
+      element += A[i * size + k] * B[k * size + j];
     }
+    C[i * size + j] = element;
   }
+
+  // Optional solution: Grid and block dimension-strided for-loop which works for any grid and block dimension
+  // for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < size; i += gridDim.x * blockDim.x) {
+  //   for (int j = blockIdx.y * blockDim.y + threadIdx.y; j < size; j += gridDim.y * blockDim.y) {
+  //     float element = 0;
+  //     for (int k = 0; k < size; k++) {
+  //       element += A[i * size + k] * B[k * size + j];
+  //     }
+  //     C[i * size + j] = element;
+  //   }
+  // }
 }
 
 int main(int argc, char *argv[]) {
@@ -72,8 +91,11 @@ int main(int argc, char *argv[]) {
 
   // Launch kernel
   int size = matrix_size;
-  dim3 grid(1);
-  dim3 block(1);
+  int number_of_threads = 32;
+  int number_of_blocks = (size + number_of_threads - 1) / number_of_threads;
+
+  dim3 grid(number_of_blocks, number_of_blocks);
+  dim3 block(number_of_threads, number_of_threads);
 
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();

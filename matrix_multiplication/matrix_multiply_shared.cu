@@ -13,10 +13,17 @@
 #include "../helpers/helpers.h"
 #include "matrix_utils.h"
 
+// Define the tile size
+constexpr int TILE_SIZE = 32;
+
 /**
- * @brief Multiplication of square matrices without any parallelization.
- * @details In this sequential implementation of square matrix multiplication,
- *          every thread would work on all the elements.
+ * @brief Multiplies matrices using shared memory.
+ * @details This last version of the square matrix multiplication uses
+ *          shared memory and a predefined TILE_SIZE to preload data and
+ *          speed up memory accesses.
+ *
+ *          Shared memory is populated in a coalesced manner, which more
+ *          efficiently utilizes memory throughput.
  */
 __global__ void multiply_square_matrices(const int size,
                                          const float *A,
