@@ -9,5 +9,8 @@ Below are the links to the files that require editing during the exercise. Click
 
 [device_properties.cu](device_properties/device_properties.cu)
 
+[hello_world.cu](hello_world/hello_world.cu)
+
+[vector_addition.cu](vector_addition/vector_addition.cu)
 
 Enjoy!
