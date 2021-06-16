@@ -18,7 +18,7 @@ run_t load(std::string const& library)
   std::string loader_path = dl_info.dli_fname;
   auto pos = loader_path.rfind("/");
   std::string lib_path = loader_path.substr(0, pos);
-  const std::string library_path = "build/" + library + "/lib" + library + ".so";  //lib_path + "/lib" + library + ".so";
+  const std::string library_path = lib_path + "/lib" + library + ".so";
     
   void* handle = dlopen(library_path.c_str(), RTLD_LAZY);
 
