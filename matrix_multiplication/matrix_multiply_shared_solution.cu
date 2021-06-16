@@ -10,8 +10,6 @@
 #include <chrono>
 #include <cstdio>
 #include <iostream>
-
-#include "../helpers/helpers.h"
 #include "matrix_utils.h"
 
 // Define the tile size
@@ -92,8 +90,8 @@ int main(int argc, char *argv[]) {
 
   for (int i = 0; i < 3; i++) {
     host_matrix[i] = new float[matrix_size * matrix_size];
-    CUDA_ASSERT(cudaMalloc((void **)&device_matrix[i],
-                           matrix_size * matrix_size * sizeof(float)));
+    cudaMalloc((void **)&device_matrix[i],
+               matrix_size * matrix_size * sizeof(float));
   }
 
   // Initialize matrices
@@ -107,9 +105,9 @@ int main(int argc, char *argv[]) {
 
   // Copy matrices to device
   for (int i = 0; i < 3; i++) {
-    CUDA_ASSERT(cudaMemcpy(device_matrix[i], host_matrix[i],
-                           matrix_size * matrix_size * sizeof(float),
-                           cudaMemcpyHostToDevice));
+    cudaMemcpy(device_matrix[i], host_matrix[i],
+               matrix_size * matrix_size * sizeof(float),
+               cudaMemcpyHostToDevice);
   }
 
   // Launch kernel
@@ -132,9 +130,8 @@ int main(int argc, char *argv[]) {
   std::chrono::duration<double> elapsed_seconds = end - start;
 
   // Copy back result
-  CUDA_ASSERT(cudaMemcpy(host_matrix[2], device_matrix[2],
-                         matrix_size * matrix_size * sizeof(float),
-                         cudaMemcpyDeviceToHost));
+  cudaMemcpy(host_matrix[2], device_matrix[2],
+             matrix_size * matrix_size * sizeof(float), cudaMemcpyDeviceToHost);
 
   // Check and print result
   check_result(host_matrix[0], host_matrix[1], host_matrix[2], matrix_size,
@@ -145,6 +142,6 @@ int main(int argc, char *argv[]) {
   // Free memory
   for (int i = 0; i < 3; i++) {
     delete[] host_matrix[i];
-    CUDA_ASSERT(cudaFree(device_matrix[i]));
+    cudaFree(device_matrix[i]);
   }
 }

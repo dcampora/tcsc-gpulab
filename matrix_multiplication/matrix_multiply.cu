@@ -6,22 +6,18 @@
    date: 05/2019, 06/2021
  */
 
-#include <chrono>
-#include <iostream>
-#include <cstdio>
-
-#include "../helpers/helpers.h"
 #include "matrix_utils.h"
+#include <chrono>
+#include <cstdio>
+#include <iostream>
 
 /**
  * @brief Multiplication of square matrices without any parallelization.
  * @details In this sequential implementation of square matrix multiplication,
  *          every thread would work on all the elements.
  */
-__global__ void multiply_square_matrices(const int size,
-                                         const float *A,
-                                         const float *B,
-                                         float *C) {
+__global__ void multiply_square_matrices(const int size, const float *A,
+                                         const float *B, float *C) {
   for (int i = 0; i < size; ++i) {
     for (int j = 0; j < size; ++j) {
       float element = 0;
@@ -50,8 +46,8 @@ int main(int argc, char *argv[]) {
 
   for (int i = 0; i < 3; i++) {
     host_matrix[i] = new float[matrix_size * matrix_size];
-    CUDA_ASSERT(cudaMalloc((void **)&device_matrix[i],
-                           matrix_size * matrix_size * sizeof(float)));
+    cudaMalloc((void **)&device_matrix[i],
+               matrix_size * matrix_size * sizeof(float));
   }
 
   // Initialize matrices
@@ -65,9 +61,9 @@ int main(int argc, char *argv[]) {
 
   // Copy matrices to device
   for (int i = 0; i < 3; i++) {
-    CUDA_ASSERT(cudaMemcpy(device_matrix[i], host_matrix[i],
-                           matrix_size * matrix_size * sizeof(float),
-                           cudaMemcpyHostToDevice));
+    cudaMemcpy(device_matrix[i], host_matrix[i],
+               matrix_size * matrix_size * sizeof(float),
+               cudaMemcpyHostToDevice);
   }
 
   // Launch kernel
@@ -87,9 +83,8 @@ int main(int argc, char *argv[]) {
   std::chrono::duration<double> elapsed_seconds = end - start;
 
   // Copy back result
-  CUDA_ASSERT(cudaMemcpy(host_matrix[2], device_matrix[2],
-                         matrix_size * matrix_size * sizeof(float),
-                         cudaMemcpyDeviceToHost));
+  cudaMemcpy(host_matrix[2], device_matrix[2],
+             matrix_size * matrix_size * sizeof(float), cudaMemcpyDeviceToHost);
 
   // Check and print result
   check_result(host_matrix[0], host_matrix[1], host_matrix[2], matrix_size,
@@ -100,6 +95,6 @@ int main(int argc, char *argv[]) {
   // Free memory
   for (int i = 0; i < 3; i++) {
     delete[] host_matrix[i];
-    CUDA_ASSERT(cudaFree(device_matrix[i]));
+    cudaFree(device_matrix[i]);
   }
 }
