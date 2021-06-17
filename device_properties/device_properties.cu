@@ -6,7 +6,8 @@
 
  */
 
-#include "../helpers/helpers.h"
+#define CUDA_ASSERT(_X) _X
+#include <iostream>
 
 using namespace std;
 
