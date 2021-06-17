@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <iostream>
 
 /**
  * @brief Prints a matrix of size m x n.
