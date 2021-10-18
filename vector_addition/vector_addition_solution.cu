@@ -11,12 +11,12 @@
 
 #include <stdio.h>
 #include <iostream>
-
+#include <algorithm>
 using namespace std;
 
-void init_with(int* a, float val, int N) {
+void init_ascending(int* a, int start, int N) {
     for ( int i = 0; i < N; i++ ) {
-        a[i] = val;
+        a[i] = start + i;
     }
 }
 
@@ -26,11 +26,12 @@ void vector_addition_cpu(int *a, int *b, int *c, int N) {
     }
 }
 
-void check_elements(int correct, int* vec, int N) {
+void check_elements(int start, int* vec, int N) {
     for (int i = 0; i < N; i++) {
-         if (vec[i] != correct) {
-                 printf("ERROR: vec[%u] = %d, should be %d \n", i, vec[i], correct);
-         }
+        const int correct = start + 2*i;
+        if (vec[i] != correct) {
+            printf("ERROR: vec[%u] = %d, should be %d \n", i, vec[i], correct);
+        }
     }
 }
 
@@ -61,9 +62,9 @@ int main(int argc, char *argv[] ) {
   int *c_h = new int[size];
 
   /* Initialize vectors */
-  init_with(a_h, 13, size);
-  init_with(b_h, 9, size);
-  init_with(c_h, 0, size);
+  init_ascending(a_h, 13, size);
+  init_ascending(b_h, 9, size);
+  std::fill(c_h, c_h + size, 0);
   
   /* Device pointers for the three vectors a, b, c */
   int *a_d, *b_d, *c_d;
