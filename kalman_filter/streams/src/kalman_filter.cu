@@ -61,6 +61,7 @@ extern "C" int run(unsigned const max_events, std::string const input_path,
     std::cout << "Requested " << max_events << " events, but only " << folder_contents_hits.size() << " are present in hits directory, and " << folder_contents_tracks.size() << " are present in tracks directory, stopping" << std::endl;
     return 1;
   }
+  if ( n_streams <= 0 ) return 0;
 
   /* allocate host arrays */
   Hit *host_hits = new Hit[max_hits_per_event * max_events]; // for all hits in all events
