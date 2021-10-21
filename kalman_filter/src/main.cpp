@@ -5,7 +5,10 @@
 int main(int argc, char *argv[]) {
 
   if (argc != 6 &&  argc != 7) {
-    std::cout << "Need five arguments: library number of events to process, input directory location, number of repititions and device to use" << std::endl;
+    static const char* requiredArgs[] = {"library_to_load", "max_events", "data_directory", "n_repetitions", "decive_id", "[n_streams]"};
+    std::cout << "Usage " << argv[0];
+    for (auto arg : requiredArgs) std::cout << "  " << arg;
+    std::cout << std::endl;
     return -1;
   }
 
