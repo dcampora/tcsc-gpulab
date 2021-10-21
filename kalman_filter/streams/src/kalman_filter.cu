@@ -135,7 +135,7 @@ extern "C" int run(unsigned const max_events, std::string const input_path,
   }
 
   cout << "Total duration: " << elapsed_seconds.count() << " s " << endl;
-  cout << "Time per event: " << elapsed_seconds.count() / max_events << endl;
+  cout << "Time per event: " << elapsed_seconds.count() / max_events / n_streams << endl;
 
   /* Free host arrays */
   delete [] host_hits;
