@@ -157,7 +157,7 @@ void kalman_filter_gpu(
       const Hit* hits_event = dev_hits + event_offsets_hits[event_number];
       const Track* tracks_event = dev_tracks + event_offsets_tracks[event_number];
       const int number_of_tracks = event_offsets_tracks[event_number+1] - event_offsets_tracks[event_number];
-    
+
       // Every track will result in one state -> use same offsets for access
       State* states_event = dev_states + event_offsets_tracks[event_number];
       

@@ -149,22 +149,24 @@ void kalman_filter_gpu(
   const Track* dev_tracks,
   const uint* event_offsets_hits,
   const uint* event_offsets_tracks,
-  State* dev_states) {
+  State* dev_states,
+  const int max_events) {
 
-  const int event_number = blockIdx.x;
-  
-  const Hit* hits_event = dev_hits + event_offsets_hits[event_number];
-  const Track* tracks_event = dev_tracks + event_offsets_tracks[event_number];
-  const int number_of_tracks = event_offsets_tracks[event_number+1] - event_offsets_tracks[event_number];
-
-  // Every track will result in one state -> use same offsets for access
-  State* states_event = dev_states + event_offsets_tracks[event_number];
-  
-  for ( int track_number = threadIdx.x; track_number < number_of_tracks; track_number += blockDim.x ) {
-    const MiniState state_at_beamline;
-    const Track& track = tracks_event[track_number];
+  for ( int event_number = blockIdx.x; event_number < max_events; event_number += gridDim.x) {
     
-    State state = simplified_fit(hits_event, state_at_beamline, track);
-    states_event[track_number] = state;
+      const Hit* hits_event = dev_hits + event_offsets_hits[event_number];
+      const Track* tracks_event = dev_tracks + event_offsets_tracks[event_number];
+      const int number_of_tracks = event_offsets_tracks[event_number+1] - event_offsets_tracks[event_number];
+    
+      // Every track will result in one state -> use same offsets for access
+      State* states_event = dev_states + event_offsets_tracks[event_number];
+      
+      for ( int track_number = threadIdx.x; track_number < number_of_tracks; track_number += blockDim.x ) {
+        const MiniState state_at_beamline;
+        const Track& track = tracks_event[track_number];
+        
+        State state = simplified_fit(hits_event, state_at_beamline, track);
+        states_event[track_number] = state;
+      }
   }
 }

@@ -123,7 +123,7 @@ extern "C" int run(unsigned const max_events, std::string const input_path,
     
     /* Launch kernels */
     for (int i_stream = 0; i_stream < n_streams; i_stream++) {
-      kalman_filter_gpu<<<blocks, threads, 0, stream[i_stream]>>>(dev_hits[i_stream], dev_tracks[i_stream], dev_event_offsets_hits[i_stream], dev_event_offsets_tracks[i_stream], dev_states[i_stream]);
+      kalman_filter_gpu<<<blocks, threads, 0, stream[i_stream]>>>(dev_hits[i_stream], dev_tracks[i_stream], dev_event_offsets_hits[i_stream], dev_event_offsets_tracks[i_stream], dev_states[i_stream], max_events);
     }
     
     /* Copy back states to host */
