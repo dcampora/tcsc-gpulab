@@ -20,7 +20,6 @@ set(CMAKE_CUDA_FLAGS "--expt-relaxed-constexpr ")
 include_directories(include)
 
 add_subdirectory(start)
-add_subdirectory(SoA)
 add_subdirectory(streams)
 add_subdirectory(pinned_host_memory)
 
