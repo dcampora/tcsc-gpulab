@@ -149,7 +149,8 @@ void kalman_filter_gpu(
   const Track* dev_tracks,
   const uint* event_offsets_hits,
   const uint* event_offsets_tracks,
-  State* dev_states) {
+  State* dev_states,
+  const int max_events) {
 
   const int event_number = blockIdx.x;
   

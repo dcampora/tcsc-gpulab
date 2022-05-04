@@ -168,4 +168,5 @@ void kalman_filter_gpu(
         State state = simplified_fit(hits_event, state_at_beamline, track);
         states_event[track_number] = state;
       }
+  }
 }

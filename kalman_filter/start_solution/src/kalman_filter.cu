@@ -101,7 +101,7 @@ extern "C" int run(unsigned const max_events, std::string const input_path,
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
 
-  for ( int repitition = 0; repitition < n_repititions; ++repitition) {
+  for ( int repetition = 0; repetition < n_repetitions; ++repetition) {
     /* Copy hits, tracks and offsets from host to device */
     
     CUDA_ASSERT( cudaMemcpy( dev_hits, host_hits, total_number_of_hits * sizeof(Hit), cudaMemcpyHostToDevice ) );
@@ -125,7 +125,7 @@ extern "C" int run(unsigned const max_events, std::string const input_path,
   compare_results(states_cpu, states_gpu, total_number_of_tracks);
 
   cout << "Total duration: " << elapsed_seconds.count() << " s " << endl;
-  cout << "Time per event: " << elapsed_seconds.count() / max_events << endl;
+  cout << "Time per event: " << elapsed_seconds.count() / max_events / n_repetitions << endl;
   
   /* Free host arrays */
   delete [] host_hits;
