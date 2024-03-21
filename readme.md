@@ -23,6 +23,10 @@ Exercises:
 
 * [matrix\_multiplication/matrix\_multiply\_shared.cu](matrix_multiplication/matrix_multiply_shared.cu)
 
+* [matrix\_multiplication/matrix\_multiply\_precision.cu](matrix_multiplication/matrix_multiply_precision.cu)
+
+* [matrix\_multiplication/matrix\_multiply\_tensor\_cores.cu](matrix_multiplication/matrix_multiply_tensor_cores.cu)
+
 Solutions:
 
 * [hello\_world/hello\_world\_solution.cu](hello_world/hello_world_solution.cu)
@@ -34,5 +38,9 @@ Solutions:
 * [matrix\_multiplication/matrix\_multiply\_grid\_solution.cu](matrix_multiplication/matrix_multiply_grid_solution.cu)
 
 * [matrix\_multiplication/matrix\_multiply\_shared\_solution.cu](matrix_multiplication/matrix_multiply_shared_solution.cu)
+
+* [matrix\_multiplication/matrix\_multiply\_precision\_solution.cu](matrix_multiplication/matrix_multiply_precision_solution.cu)
+
+* [matrix\_multiplication/matrix\_multiply\_tensor\_cores\_solution.cu](matrix_multiplication/matrix_multiply_tensor_cores_solution.cu)
 
 Enjoy!
