@@ -17,7 +17,7 @@ constexpr int TILE_SIZE = 32;
 
 /**
  * @brief Multiplies matrices using shared memory.
- * @details This last version of the square matrix multiplication uses
+ * @details This version of the square matrix multiplication uses
  *          shared memory and a predefined TILE_SIZE to preload data and
  *          speed up memory accesses.
  *
@@ -97,8 +97,8 @@ int main(int argc, char *argv[]) {
   // Initialize matrices
   for (int i = 0; i < matrix_size; i++) {
     for (int j = 0; j < matrix_size; j++) {
-      host_matrix[0][i * matrix_size + j] = 0.1f * (((i + 1) * (j + 1)) % 10);
-      host_matrix[1][i * matrix_size + j] = 0.1f * ((2 * i + j) % 10);
+      host_matrix[0][i * matrix_size + j] = 0.1 * (((i + 1) * (j + 1)) % 10);
+      host_matrix[1][i * matrix_size + j] = 0.1 * ((2 * i + j) % 10);
       host_matrix[2][i * matrix_size + j] = 0;
     }
   }
