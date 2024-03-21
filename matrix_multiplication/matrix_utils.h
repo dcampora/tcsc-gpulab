@@ -1,12 +1,21 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <iostream>
+#include "cuda_fp16.h"
+
+template<typename T, typename U>
+bool inline equals(T a, U b, double threshold) {
+  auto diff = std::abs(double(a) - double(b));
+  return diff < threshold;
+}
 
 /**
  * @brief Prints a matrix of size m x n.
  */
-void inline print_matrix(const float *A, const int m, const int n,
+template<typename T>
+void inline print_matrix(const T *A, const int m, const int n,
                          const std::string preamble = "",
                          const int max_columns = 0, const int max_rows = 0) {
   if (preamble != "") {
@@ -16,7 +25,7 @@ void inline print_matrix(const float *A, const int m, const int n,
     for (int j = 0; j < n; ++j) {
       if ((max_columns == 0 || j < max_columns) &&
           (max_rows == 0 || i < max_rows)) {
-        printf("%8.2f   ", A[i * m + j]);
+        printf("%10.4f   ", float(A[i * m + j]));
       }
     }
     if (max_rows == 0 || i < max_rows) {
@@ -30,10 +39,13 @@ void inline print_matrix(const float *A, const int m, const int n,
  * @brief Checks matrix A multiplied by matrix B results in C.
  *        Only checks elements until check_rows and check_columns
  */
-void inline check_result(const float *A, const float *B, const float *C,
-                         const int m, const int n, const int k, const int check_rows = 64,
+template<typename TInput, typename TOutput>
+void inline check_result(const TInput *A, const TInput *B, const TOutput *C,
+                         const int m, const int n, const int k, const double threshold = 0.01,
+                         const int check_rows = 64,
                          const int check_cols = 64) {
-  float *test_matrix = new float[m * k];
+  TInput *test_matrix = new TInput[m * k];
+  
 
   // Print matrices A, B, C
   // print_matrix(A, m, n, "Matrix A:");
@@ -43,7 +55,7 @@ void inline check_result(const float *A, const float *B, const float *C,
   // Perform computation
   for (int row0 = 0; row0 < m && row0 < check_rows; ++row0) {
     for (int col1 = 0; col1 < k && col1 < check_cols; ++col1) {
-      auto element = 0.f;
+      auto element = TInput(0);
       for (int i = 0; i < n; ++i) {
         element += A[row0 * m + i] * B[i * n + col1];
       }
@@ -58,12 +70,12 @@ void inline check_result(const float *A, const float *B, const float *C,
   int number_of_errors = 0;
   for (int i = 0; i < m && i < check_rows; ++i) {
     for (int j = 0; j < k && j < check_cols; ++j) {
-      const auto cond = C[i * m + j] == test_matrix[i * m + j];
+      const auto cond = equals(C[i * m + j], test_matrix[i * m + j], threshold);
       number_of_errors += !cond;
 
       if (number_of_errors < 10 && !cond) {
-        printf("\nError in row %d col %d - Expected: %0.2f, Found: %0.2f\n", i,
-               j, test_matrix[i * m + j], C[i * m + j]);
+        printf("Error in row %d col %d - Expected: %0.6f, Found: %0.6f\n", i,
+               j, test_matrix[i * m + j], TInput(C[i * m + j]));
       }
     }
   }

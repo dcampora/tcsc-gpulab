@@ -16,7 +16,7 @@ constexpr int TILE_SIZE = 32;
 
 /**
  * @brief Multiplies matrices using shared memory.
- * @details This last version of the square matrix multiplication uses
+ * @details This version of the square matrix multiplication uses
  *          shared memory and a predefined TILE_SIZE to preload data and
  *          speed up memory accesses.
  *

@@ -1,32 +1,76 @@
 /**
-   Square matrix multiplication example
+ Square matrix multiplication example
 
-   author: Dorothea vom Bruch (dorothea.vom.bruch@cern.ch)
-           Daniel Campora (dcampora@cern.ch)
-   date: 05/2019, 06/2021
- */
+ author: Dorothea vom Bruch (dorothea.vom.bruch@cern.ch)
+         Daniel Campora (dcampora@cern.ch)
+ date: 05/2019, 06/2021
 
-#include "matrix_utils.h"
+*/
+
 #include <chrono>
 #include <cstdio>
 #include <iostream>
+#include "matrix_utils.h"
+
+// Define the tile size
+constexpr int TILE_SIZE = 32;
 
 /**
- * @brief Multiplication of square matrices without any parallelization.
- * @details In this sequential implementation of square matrix multiplication,
- *          every thread would work on all the elements.
+ * @brief Multiplies matrices using shared memory.
+ * @details This last version of the square matrix multiplication uses
+ *          shared memory and a predefined TILE_SIZE to preload data and
+ *          speed up memory accesses.
+ *
+ *          Shared memory is populated in a coalesced manner, which more
+ *          efficiently utilizes memory throughput.
  */
 __global__ void multiply_square_matrices(const int size, const float *A,
                                          const float *B, float *C) {
-  for (int i = 0; i < size; ++i) {
-    for (int j = 0; j < size; ++j) {
-      float element = 0;
-      for (int k = 0; k < size; k++) {
-        element += A[i * size + k] * B[k * size + j];
-      }
-      C[i * size + j] = element;
+  // Sub-matrix this block works on
+  int blockI = blockIdx.x;
+  int blockJ = blockIdx.y;
+
+  // Element within sub-matrix this thread works on
+  int i = threadIdx.x;
+  int j = threadIdx.y;
+
+  // Define shared memory buffers which will be used to cache source matrices
+  __shared__ float shared_A[TILE_SIZE][TILE_SIZE];
+  __shared__ float shared_B[TILE_SIZE][TILE_SIZE];
+
+  // Every thread calculates one element of destination sub-matrix
+  float sum = 0;
+
+  // Loop over blocks of size (TILE_SIZE x TILE_SIZE)
+  for (int k = 0; k < (size / TILE_SIZE); ++k) {
+
+    // Pointer to sub-matrix start
+    const float *sub_A = A + size * TILE_SIZE * blockI + TILE_SIZE * k;
+    const float *sub_B = B + size * TILE_SIZE * k + TILE_SIZE * blockJ;
+
+    // Load sub-matrices into shared memory
+    shared_A[i][j] = sub_A[i * size + j];
+    shared_B[i][j] = sub_B[i * size + j];
+
+    // Synchronize to make sure all threads have finished writing to shared
+    // memory
+    __syncthreads();
+
+    // Multiply the two sub matrices
+    for (int e = 0; e < TILE_SIZE; e++) {
+      sum += shared_A[i][e] * shared_B[e][j];
     }
+
+    // Synchronize to make sure all threads have computed the sum
+    // before the next sub-matrices are loaded
+    __syncthreads();
   }
+
+  // Pointer to result sub-matrix
+  float *sub_C = C + size * TILE_SIZE * blockI + TILE_SIZE * blockJ;
+
+  // Write result to global memory
+  sub_C[i * size + j] = sum;
 }
 
 int main(int argc, char *argv[]) {
@@ -68,8 +112,11 @@ int main(int argc, char *argv[]) {
 
   // Launch kernel
   int size = matrix_size;
-  dim3 grid(1);
-  dim3 block(1);
+  int number_of_threads = TILE_SIZE;
+  int number_of_blocks = (size + number_of_threads - 1) / number_of_threads;
+
+  dim3 grid(number_of_blocks, number_of_blocks);
+  dim3 block(number_of_threads, number_of_threads);
 
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
@@ -88,7 +135,7 @@ int main(int argc, char *argv[]) {
 
   // Check and print result
   check_result(host_matrix[0], host_matrix[1], host_matrix[2], matrix_size,
-               matrix_size, matrix_size);
+               matrix_size, matrix_size, 0.000001f);
 
   std::cout << "Kernel duration: " << elapsed_seconds.count() << " s\n";
 

@@ -12,12 +12,15 @@
 #include <iostream>
 #include "matrix_utils.h"
 
+using storage_T = float; // Other types to test: half, float, double
+using arithmetic_T = float; // Other types to test: half, float, double
+
 // Define the tile size
 constexpr int TILE_SIZE = 32;
 
 /**
  * @brief Multiplies matrices using shared memory.
- * @details This version of the square matrix multiplication uses
+ * @details This last version of the square matrix multiplication uses
  *          shared memory and a predefined TILE_SIZE to preload data and
  *          speed up memory accesses.
  *
@@ -82,6 +85,7 @@ int main(int argc, char *argv[]) {
   }
 
   const int matrix_size = atoi(argv[argc - 1]);
+  double threshold = 0.01;
 
   // Allocate host and device memory for three matrices
   float *host_matrix[3]; // matrix[0] and matrix[1] are the source for the
@@ -134,8 +138,16 @@ int main(int argc, char *argv[]) {
              matrix_size * matrix_size * sizeof(float), cudaMemcpyDeviceToHost);
 
   // Check and print result
-  check_result(host_matrix[0], host_matrix[1], host_matrix[2], matrix_size,
-               matrix_size, matrix_size);
+  std::vector<double> host_matrix_A_d(matrix_size * matrix_size);
+  std::vector<double> host_matrix_B_d(matrix_size * matrix_size);
+  for (int i = 0; i < matrix_size; i++) {
+    for (int j = 0; j < matrix_size; j++) {
+      host_matrix_A_d[i * matrix_size + j] = 0.1 * (((i + 1) * (j + 1)) % 10);
+      host_matrix_B_d[i * matrix_size + j] = 0.1 * ((2 * i + j) % 10);
+    }
+  }
+  check_result<double>(host_matrix_A_d.data(), host_matrix_B_d.data(), host_matrix[2], matrix_size,
+                       matrix_size, matrix_size, threshold);
 
   std::cout << "Kernel duration: " << elapsed_seconds.count() << " s\n";
 
